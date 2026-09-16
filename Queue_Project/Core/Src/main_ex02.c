@@ -375,7 +375,7 @@ void StartSender1(void *argument)
 		  uart_print(msg);
 		  value++;
 	  }
-	  osDelay(1000);
+	  osDelay(700);
   }
   /* USER CODE END StartSender1 */
 }
@@ -420,7 +420,7 @@ void StartReceiver(void *argument)
 		  snprintf(msg, sizeof(msg), "Received : %u \r\n", (unsigned int)rx);
 		  uart_print(msg);
 	  }
-	  osDelay(3000);
+	  osDelay(2500);
   }
   /* USER CODE END StartReceiver */
 }
@@ -440,18 +440,22 @@ void StartMonitorTask(void *argument)
   for(;;)
   {
 	  uint32_t count = osMessageQueueGetCount(Queue2Handle);
-	  uint32_t space = osMessageQueueGetCount(Queue2Handle);
+	  uint32_t space = osMessageQueueGetSpace(Queue2Handle);
 
 	  snprintf(msg, sizeof(msg), "[Monitor Task] Queue usage: %lu / %lu \r\n",
 			  (unsigned long)count, (unsigned long)(count + space));
 	  uart_print(msg);
 
-	  if (count >= 10)
+	  if (count >= 7)
+	  {
+		  uart_print("[Monitor Task] Warning! \r\n");
+	  }
+	  else if (count >= 10)
 	  {
 		  osMessageQueueReset(Queue2Handle);
 		  uart_print("[Monitor Task] Queue reset \r\n");
 	  }
-	  osDelay(2000);
+	  osDelay(1000);
   }
   /* USER CODE END StartMonitorTask */
 }
