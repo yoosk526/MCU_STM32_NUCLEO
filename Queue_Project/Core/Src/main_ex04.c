@@ -34,8 +34,8 @@
 typedef struct
 {
 	uint8_t  sender_id;
+	uint16_t type;
 	uint16_t data;
-	uint16_t seq;
 } Msg_t;
 /* USER CODE END PTD */
 
@@ -87,13 +87,27 @@ const osThreadAttr_t MonitorTask_attributes = {
   .priority = (osPriority_t) osPriorityLow,
   .stack_size = 128 * 4
 };
+/* Definitions for DoorTask */
+osThreadId_t DoorTaskHandle;
+const osThreadAttr_t DoorTask_attributes = {
+  .name = "DoorTask",
+  .priority = (osPriority_t) osPriorityLow,
+  .stack_size = 128 * 4
+};
+/* Definitions for CoolerTask */
+osThreadId_t CoolerTaskHandle;
+const osThreadAttr_t CoolerTask_attributes = {
+  .name = "CoolerTask",
+  .priority = (osPriority_t) osPriorityLow,
+  .stack_size = 128 * 4
+};
 /* Definitions for Queue2 */
 osMessageQueueId_t Queue2Handle;
 const osMessageQueueAttr_t Queue2_attributes = {
   .name = "Queue2"
 };
 /* USER CODE BEGIN PV */
-osMessageQueueId_t qHandle;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -105,6 +119,8 @@ void StartSender1(void *argument);
 void StartSender2(void *argument);
 void StartReceiver(void *argument);
 void StartMonitorTask(void *argument);
+void StartDoorTask(void *argument);
+void StartCoolerTask(void *argument);
 
 /* USER CODE BEGIN PFP */
 static void uart_print(const char *s);
@@ -169,10 +185,10 @@ int main(void)
 
   /* Create the queue(s) */
   /* creation of Queue2 */
-  Queue2Handle = osMessageQueueNew (10, sizeof(Msg_t), &Queue2_attributes);
+  Queue2Handle = osMessageQueueNew (16, sizeof(Msg_t), &Queue2_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
-//  qHandle = osMessageQueueNew(5, sizeof(uint16_t), NULL);
+  /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
@@ -189,7 +205,13 @@ int main(void)
   ReceiverHandle = osThreadNew(StartReceiver, NULL, &Receiver_attributes);
 
   /* creation of MonitorTask */
-//  MonitorTaskHandle = osThreadNew(StartMonitorTask, NULL, &MonitorTask_attributes);
+  MonitorTaskHandle = osThreadNew(StartMonitorTask, NULL, &MonitorTask_attributes);
+
+  /* creation of DoorTask */
+  DoorTaskHandle = osThreadNew(StartDoorTask, NULL, &DoorTask_attributes);
+
+  /* creation of CoolerTask */
+  CoolerTaskHandle = osThreadNew(StartCoolerTask, NULL, &CoolerTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -375,8 +397,8 @@ void StartSender1(void *argument)
 	char msg[64];
 
 	tx.sender_id = 1;
-	tx.data = 100;
-	tx.seq = 0;
+	tx.type = TYPE_SPEED;
+	tx.data = 50;
 
   /* Infinite loop */
 	for(;;)
@@ -384,13 +406,14 @@ void StartSender1(void *argument)
 		osMessageQueuePut(Queue2Handle, &tx, 0, osWaitForever);
 
 		snprintf(msg, sizeof(msg),
-				"[S1] put data=%u seq=%u \r\n",
-				(unsigned int)tx.data, (unsigned int)tx.seq);
+				"[TX] Speed Data : %u \r\n", (unsigned int)tx.data);
 
 		uart_print(msg);
 
-		tx.data++;
-		tx.seq++;
+		tx.data += 5;
+		if (tx.data > 70){
+		  tx.data = 50;
+		}
 
 		osDelay(2000);
 	}
@@ -411,8 +434,8 @@ void StartSender2(void *argument)
 	char msg[64];
 
 	tx.sender_id = 2;
-	tx.data = 200;
-	tx.seq = 0;
+	tx.type = TYPE_TEMP;
+	tx.data = 25;
 
 	osDelay(1000);
 
@@ -422,13 +445,14 @@ void StartSender2(void *argument)
 		osMessageQueuePut(Queue2Handle, &tx, 0, osWaitForever);
 
 		snprintf(msg, sizeof(msg),
-				"[S2] put data=%u seq=%u \r\n",
-				(unsigned int)tx.data, (unsigned int)tx.seq);
+				"[TX] Temp Data : %u \r\n", (unsigned int)tx.data);
 
 		uart_print(msg);
 
 		tx.data++;
-		tx.seq++;
+		if (tx.data > 35){
+		  tx.data = 25;
+		}
 
 		osDelay(2000);
 	}
@@ -449,24 +473,48 @@ void StartReceiver(void *argument)
 	uint8_t prio;
 	char msg[80];
 
+	osThreadSuspend(DoorTaskHandle);
+	osThreadSuspend(CoolerTaskHandle);
 	osDelay(500);
-
   /* Infinite loop */
 	for(;;)
 	{
-	  osStatus_t st = osMessageQueueGet(Queue2Handle, &rx, &prio, osWaitForever);
+		osStatus_t st = osMessageQueueGet(Queue2Handle, &rx, &prio, osWaitForever);
 
-	  if (st == osOK)
-	  {
-		  snprintf(msg, sizeof(msg),
-				  "[R] from S%u : data=%u seq=%u \r\n\n",
-				  (unsigned int)rx.sender_id,
-				  (unsigned int)rx.data,
-				  (unsigned int)rx.seq);
+		if (st == osOK)
+		 {
+			 snprintf(msg, sizeof(msg),
+					  "[RX] S%u type=%u data=%u \r\n",
+					  (unsigned int)rx.sender_id,
+					  (unsigned int)rx.type,
+					  (unsigned int)rx.data);
 
-		  uart_print(msg);
-	  }
-	  osDelay(1000);
+			  uart_print(msg);
+
+			  if (rx.type == TYPE_SPEED)
+			  {
+				  if (rx.data >= 60) {
+					  uart_print("[CTRL] Door Locked \r\n");
+					  osThreadResume(DoorTaskHandle);
+				  }
+				  else {
+					  uart_print("[CTRL] Door Unlocked \r\n\n");
+					  osThreadSuspend(DoorTaskHandle);
+				  }
+			  }
+			  else if (rx.type == TYPE_TEMP)
+			  {
+				  if (rx.data >= 30) {
+					  uart_print("[CTRL] Cooler ON \r\n");
+					  osThreadResume(CoolerTaskHandle);
+				  }
+				  else {
+					  uart_print("[CTRL] Cooler OFF \r\n\n");
+					  osThreadSuspend(CoolerTaskHandle);
+				  }
+			  }
+		 }
+		 osDelay(1000);
 	}
   /* USER CODE END StartReceiver */
 }
@@ -481,25 +529,50 @@ void StartReceiver(void *argument)
 void StartMonitorTask(void *argument)
 {
   /* USER CODE BEGIN StartMonitorTask */
-	char msg[80];
   /* Infinite loop */
   for(;;)
   {
-	  uint32_t count = osMessageQueueGetCount(Queue2Handle);
-	  uint32_t space = osMessageQueueGetCount(Queue2Handle);
-
-	  snprintf(msg, sizeof(msg), "[Monitor Task] Queue usage: %lu / %lu \r\n",
-			  (unsigned long)count, (unsigned long)(count + space));
-	  uart_print(msg);
-
-	  if (count >= 10)
-	  {
-		  osMessageQueueReset(Queue2Handle);
-		  uart_print("[Monitor Task] Queue reset \r\n");
-	  }
-	  osDelay(2000);
+    osDelay(1);
   }
   /* USER CODE END StartMonitorTask */
+}
+
+/* USER CODE BEGIN Header_StartDoorTask */
+/**
+* @brief Function implementing the DoorTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartDoorTask */
+void StartDoorTask(void *argument)
+{
+  /* USER CODE BEGIN StartDoorTask */
+  /* Infinite loop */
+	for(;;)
+	{
+		uart_print("[DOOR] Running \r\n\n");
+		osDelay(1000);
+	}
+  /* USER CODE END StartDoorTask */
+}
+
+/* USER CODE BEGIN Header_StartCoolerTask */
+/**
+* @brief Function implementing the CoolerTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartCoolerTask */
+void StartCoolerTask(void *argument)
+{
+  /* USER CODE BEGIN StartCoolerTask */
+  /* Infinite loop */
+	for(;;)
+	{
+		uart_print("[COOLER] Running \r\n\n");
+		osDelay(1000);
+	}
+  /* USER CODE END StartCoolerTask */
 }
 
 /**
