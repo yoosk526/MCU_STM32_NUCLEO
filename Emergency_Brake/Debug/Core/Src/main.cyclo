@@ -1,0 +1,14 @@
+../Core/Src/main.c:110:13:uart_print	1
+../Core/Src/main.c:119:5:main	1
+../Core/Src/main.c:235:6:SystemClock_Config	3
+../Core/Src/main.c:273:13:MX_USART2_UART_Init	5
+../Core/Src/main.c:318:13:MX_GPIO_Init	1
+../Core/Src/main.c:359:6:StartDefaultTask	1
+../Core/Src/main.c:375:6:StartSpeedTask	6
+../Core/Src/main.c:420:6:StartDistanceTask	3
+../Core/Src/main.c:452:6:StartControlTask	4
+../Core/Src/main.c:480:6:StartWarningTask	1
+../Core/Src/main.c:508:6:StartBrakeTask	1
+../Core/Src/main.c:531:6:ResponseTimerCallback	1
+../Core/Src/main.c:545:6:HAL_TIM_PeriodElapsedCallback	2
+../Core/Src/main.c:561:6:Error_Handler	1
