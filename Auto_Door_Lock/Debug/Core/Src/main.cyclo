@@ -1,0 +1,12 @@
+../Core/Src/main.c:118:13:uart_print	1
+../Core/Src/main.c:127:5:main	1
+../Core/Src/main.c:231:6:SystemClock_Config	3
+../Core/Src/main.c:272:13:MX_USART2_UART_Init	5
+../Core/Src/main.c:320:13:MX_GPIO_Init	1
+../Core/Src/main.c:362:6:StartDefaultTask	1
+../Core/Src/main.c:379:6:StartSpeedTask	2
+../Core/Src/main.c:413:6:StartDoorStateTask	1
+../Core/Src/main.c:437:6:StartDoorControlTask	4
+../Core/Src/main.c:464:6:StartDoorLockTask	1
+../Core/Src/main.c:493:6:HAL_TIM_PeriodElapsedCallback	2
+../Core/Src/main.c:510:6:Error_Handler	1
