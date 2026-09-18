@@ -1,0 +1,16 @@
+../Core/Src/main_ex03_1.c:151:13:uart_print	16	static
+../Core/Src/main_ex03_1.c:156:13:OuterFunction	8	static
+../Core/Src/main_ex03_1.c:167:13:InnerFunction	8	static
+../Core/Src/main_ex03_1.c:179:5:main	8	static
+../Core/Src/main_ex03_1.c:298:6:SystemClock_Config	96	static
+../Core/Src/main_ex03_1.c:339:13:MX_USART2_UART_Init	8	static
+../Core/Src/main_ex03_1.c:387:13:MX_GPIO_Init	48	static
+../Core/Src/main_ex03_1.c:429:6:StartDefaultTask	16	static
+../Core/Src/main_ex03_1.c:447:6:StartTASK1	16	static
+../Core/Src/main_ex03_1.c:465:6:StartTASK2	16	static
+../Core/Src/main_ex03_1.c:483:6:StartLP	16	static
+../Core/Src/main_ex03_1.c:501:6:StartMP	16	static
+../Core/Src/main_ex03_1.c:519:6:StartHP	16	static
+../Core/Src/main_ex03_1.c:537:6:StartMyTask	16	static
+../Core/Src/main_ex03_1.c:559:6:HAL_TIM_PeriodElapsedCallback	16	static
+../Core/Src/main_ex03_1.c:576:6:Error_Handler	8	static,ignoring_inline_asm
