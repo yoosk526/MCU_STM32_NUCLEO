@@ -148,7 +148,7 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
-  qHandle = osMessageQueueNew(5, sizeof(uint16_t), NULL);
+  qHandle = osMessageQueueNew(16, sizeof(uint16_t), NULL);
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
