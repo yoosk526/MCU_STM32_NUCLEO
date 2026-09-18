@@ -1,0 +1,14 @@
+../Core/Src/main_ex01_1.c:119:13:uart_print	16	static
+../Core/Src/main_ex01_1.c:129:5:main	8	static
+../Core/Src/main_ex01_1.c:233:6:SystemClock_Config	96	static
+../Core/Src/main_ex01_1.c:274:13:MX_USART2_UART_Init	8	static
+../Core/Src/main_ex01_1.c:322:13:MX_GPIO_Init	48	static
+../Core/Src/main_ex01_1.c:364:6:StartDefaultTask	16	static
+../Core/Src/main_ex01_1.c:382:6:StartTimerTestTask	16	static
+../Core/Src/main_ex01_1.c:400:6:StartSender1	16	static
+../Core/Src/main_ex01_1.c:419:6:StartSender2	16	static
+../Core/Src/main_ex01_1.c:438:6:StartReceiver	104	static
+../Core/Src/main_ex01_1.c:462:6:OneShotTimerCallback	24	static
+../Core/Src/main_ex01_1.c:471:6:PeriodicTimerCallback	24	static
+../Core/Src/main_ex01_1.c:487:6:HAL_TIM_PeriodElapsedCallback	16	static
+../Core/Src/main_ex01_1.c:504:6:Error_Handler	8	static,ignoring_inline_asm
